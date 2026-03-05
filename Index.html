@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+</head>
+<body style="margin:0;background:black;color:white;text-align:center;">
+
+<h2>My AI Robot</h2>
+<button onclick="startListening()">Говори</button>
+<p id="response"></p>
+
+<script>
+const apiKey = "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";
+
+async function startListening() {
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "bg-BG";
+  recognition.start();
+
+  recognition.onresult = async function(event) {
+    const text = event.results[0][0].transcript;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {role: "system", content: "Ти си робот. В края на всеки отговор добавяй (happy), (angry), (sad) или (neutral)."},
+          {role: "user", content: text}
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
+
+    document.getElementById("response").innerText = reply;
+
+    const speech = new SpeechSynthesisUtterance(reply);
+    speech.lang = "bg-BG";
+    speechSynthesis.speak(speech);
+  };
+}
+</script>
+
+</body>
+</html>
